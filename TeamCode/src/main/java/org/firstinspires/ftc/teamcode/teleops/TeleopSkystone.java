@@ -3,15 +3,17 @@ package org.firstinspires.ftc.teamcode.teleops;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.util.Utility;
 
-@TeleOp(name = "TeleOp Test", group = "bot")
+@TeleOp(name = "TeleOp Skystone", group = "bot")
 
-public class MecanumTeleOpTest extends OpMode {
+public class MecanumTeleOp extends OpMode {
 
-    DcMotor fr, fl, br, bl;
+    DcMotor fr, fl, br, bl, intakeRight, intakeLeft;
+    Servo leftServo, rightServo;
 
     double frPower, flPower, brPower, blPower;
 
@@ -20,11 +22,19 @@ public class MecanumTeleOpTest extends OpMode {
     private Utility firebot = new Utility();
 
     @Override
-    public void init(){
+    public void init() {
         fr = hardwareMap.dcMotor.get("frontRight");
         fl = hardwareMap.dcMotor.get("frontLeft");
         br = hardwareMap.dcMotor.get("backRight");
         bl = hardwareMap.dcMotor.get("backLeft");
+        intakeRight = hardwareMap.dcMotor.get("intakeRight");
+        intakeLeft = hardwareMap.dcMotor.get("intakeLeft");
+
+        leftServo = hardwareMap.servo.get("leftServo");
+        rightServo = hardwareMap.servo.get("rightServo");
+
+        leftServo.setPosition(0.5);
+        rightServo.setPosition(0.5);
     }
 
     @Override
@@ -35,6 +45,15 @@ public class MecanumTeleOpTest extends OpMode {
     @Override
     public void loop(){
         //Declaring and initializing gamepad controls
+
+        if (gamepad1.a) {
+            leftServo.setPosition(1);
+            rightServo.setPosition(1);
+        }
+        if (gamepad1.b) {
+            leftServo.setPosition(0.5);
+            rightServo.setPosition(0.6);
+        }
 
         //Misc Joystick intialization and conditioning
         //original configuration: db: 0 , off: 0.05 , gain: 0.9
@@ -67,8 +86,17 @@ public class MecanumTeleOpTest extends OpMode {
         boolean leftBumper2 = gamepad2.left_bumper;
         rightBumper2 = false;
 
+        if (gamepad1.right_trigger > 0) {
+            intakeRight.setPower(-gamepad1RightTrigger);
+            intakeLeft.setPower(gamepad1RightTrigger);
+        }
+        if (gamepad1.left_trigger > 0) {
+            intakeRight.setPower(gamepad1LeftTrigger);
+            intakeLeft.setPower(-gamepad1LeftTrigger);
+        }
+        
         //Mecanum values
-        double maxPower = .5; //Maximum power for power range
+        double maxPower = 1; //Maximum power for power range
         double yMove = firebot.joystick_conditioning(gamepad1.left_stick_y, 0, 0.05, 0.9);
         double xMove = firebot.joystick_conditioning(gamepad1.left_stick_x, 0, 0.05, 0.9);
         double cMove = firebot.joystick_conditioning(gamepad1.right_stick_x, 0, 0.05, 0.9);
@@ -94,9 +122,9 @@ public class MecanumTeleOpTest extends OpMode {
             backRightPower = Range.clip(backRightPower, -maxPower, maxPower);
 
             //Setting power to Mecanum drivetrain
-            fl.setPower(-frontLeftPower);
+            fl.setPower(frontLeftPower);
             fr.setPower(-frontRightPower);
-            bl.setPower(-backLeftPower);
+            bl.setPower(backLeftPower);
             br.setPower(-backRightPower);
 
 
